@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth, mapFirebaseAuthError } from "../hooks/useAuth";
+import escudoUrl from "../img/vasco-da-gama-rj.svg";
 
 export function LoginPage() {
   const { login } = useAuth();
@@ -29,7 +30,7 @@ export function LoginPage() {
     <div className="login-page">
       <div className="login-card">
         <div className="login-brand">
-          <div className="brand-mark brand-mark-lg">AC</div>
+          <img src={escudoUrl} alt="Escudo" className="brand-img brand-img-lg" />
           <h1 className="login-title">Afonso Contábeis</h1>
           <p className="login-sub">Gestão interna</p>
           <p className="login-hint">Acesso restrito • Digite seu usuário e senha</p>

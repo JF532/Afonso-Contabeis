@@ -1,4 +1,5 @@
 import { useAuth } from "../hooks/useAuth";
+import escudoUrl from "../img/vasco-da-gama-rj.svg";
 
 export function Header() {
   const { usuario, logout } = useAuth();
@@ -7,7 +8,7 @@ export function Header() {
     <header className="topbar">
       <div className="topbar-inner">
         <div className="brand">
-          <div className="brand-mark">AC</div>
+          <img src={escudoUrl} alt="Escudo" className="brand-img" />
           <div>
             <div className="brand-name">Afonso Contábeis</div>
             <div className="brand-sub">Gestão interna</div>
