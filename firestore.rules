@@ -8,11 +8,11 @@ service cloud.firestore {
 
       // Somente o Afonso pode visualizar as atividades
       allow read: if request.auth != null
-        && request.auth.uid == "lzfE7smV0dW38VccI41dKCde2Kc";
+        && request.auth.uid == "lzfE7smV0dW38VccI41dKCde2Kc2";
 
       // Criar atividade
       allow create: if request.auth != null
-        && request.auth.uid == "lzfE7smV0dW38VccI41dKCde2Kc"
+        && request.auth.uid == "lzfE7smV0dW38VccI41dKCde2Kc2"
         && request.resource.data.criadaPor == request.auth.uid
         && request.resource.data.titulo is string
         && request.resource.data.titulo.size() >= 3
@@ -23,7 +23,7 @@ service cloud.firestore {
 
       // Atualizar atividade
       allow update: if request.auth != null
-        && request.auth.uid == "lzfE7smV0dW38VccI41dKCde2Kc"
+        && request.auth.uid == "lzfE7smV0dW38VccI41dKCde2Kc2"
 
         // O criador original nunca pode ser alterado
         && request.resource.data.criadaPor == resource.data.criadaPor
@@ -69,7 +69,7 @@ service cloud.firestore {
 
       // Somente o Afonso pode excluir atividades
       allow delete: if request.auth != null
-        && request.auth.uid == "lzfE7smV0dW38VccI41dKCde2Kc";
+        && request.auth.uid == "lzfE7smV0dW38VccI41dKCde2Kc2";
 
     }
 
