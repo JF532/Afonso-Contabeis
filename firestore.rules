@@ -1,0 +1,86 @@
+rules_version = '2';
+
+// Afonso Contábeis — regras do Firestore (coleção `atividades`)
+// Cole no console: Firebase > Firestore Database > Rules
+
+service cloud.firestore {
+
+  match /databases/{database}/documents {
+
+    // Atividades — somente usuários autenticados do Afonso Contábeis
+    match /atividades/{atividadeId} {
+
+      // Leitura: apenas usuário autenticado
+      allow read: if request.auth != null;
+
+      // Criação: precisa estar autenticado e ser o próprio autor (UID)
+      allow create: if request.auth != null
+
+        // criadaPor tem que ser exatamente o UID da conta autenticada
+        && request.resource.data.criadaPor == request.auth.uid
+
+        // título válido
+        && request.resource.data.titulo is string
+        && request.resource.data.titulo.size() >= 3
+
+        // não pode nascer concluída
+        && request.resource.data.concluida == false
+        && request.resource.data.concluidaPor == null
+        && request.resource.data.concluidaPorNome == null
+        && request.resource.data.concluidaEm == null;
+
+      // Atualização
+      allow update: if request.auth != null
+
+        // criadaPor é imutável
+        && request.resource.data.criadaPor == resource.data.criadaPor
+
+        // atividade concluída não pode ser reaberta
+        && !(resource.data.concluida == true
+          && request.resource.data.concluida == false)
+
+        // se já estava concluída, os dados da conclusão são imutáveis
+        && !(resource.data.concluida == true
+          && request.resource.data.concluidaPor != resource.data.concluidaPor)
+
+        && !(resource.data.concluida == true
+          && request.resource.data.concluidaPorNome != resource.data.concluidaPorNome)
+
+        && !(resource.data.concluida == true
+          && request.resource.data.concluidaEm != resource.data.concluidaEm)
+
+        // enquanto pendente, os campos de conclusão precisam continuar vazios
+        && (
+          request.resource.data.concluida == true
+          || (
+            request.resource.data.concluida == false
+            && request.resource.data.concluidaPor == null
+            && request.resource.data.concluidaPorNome == null
+            && request.resource.data.concluidaEm == null
+          )
+        )
+
+        // ao concluir (false -> true), concluidaPor tem que ser o próprio UID
+        // — impede concluir em nome de outra conta
+        && (
+          resource.data.concluida == true
+          || request.resource.data.concluida == false
+          || (
+            request.resource.data.concluida == true
+            && request.resource.data.concluidaPor is string
+            && request.resource.data.concluidaPor == request.auth.uid
+            && request.resource.data.concluidaPorNome is string
+            && request.resource.data.concluidaEm != null
+          )
+        );
+
+      // Exclusão: apenas usuário autenticado
+      allow delete: if request.auth != null;
+    }
+
+    // Qualquer outra coleção/documento permanece bloqueado
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
