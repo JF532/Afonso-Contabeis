@@ -1,55 +1,50 @@
 rules_version = '2';
 
-// Afonso Contábeis — regras do Firestore (coleção `atividades`)
-// Cole no console: Firebase > Firestore Database > Rules
-
 service cloud.firestore {
 
   match /databases/{database}/documents {
 
-    // Atividades — somente usuários autenticados do Afonso Contábeis
-    match /atividades/{atividadeId} {
+    match /atividades/{id} {
 
-      // Leitura: apenas usuário autenticado
-      allow read: if request.auth != null;
+      // Somente o Afonso pode visualizar as atividades
+      allow read: if request.auth != null
+        && request.auth.uid == "lzfE7smV0dW38VccI41dKCde2Kc";
 
-      // Criação: precisa estar autenticado e ser o próprio autor (UID)
+      // Criar atividade
       allow create: if request.auth != null
-
-        // criadaPor tem que ser exatamente o UID da conta autenticada
+        && request.auth.uid == "lzfE7smV0dW38VccI41dKCde2Kc"
         && request.resource.data.criadaPor == request.auth.uid
-
-        // título válido
         && request.resource.data.titulo is string
         && request.resource.data.titulo.size() >= 3
-
-        // não pode nascer concluída
         && request.resource.data.concluida == false
         && request.resource.data.concluidaPor == null
         && request.resource.data.concluidaPorNome == null
         && request.resource.data.concluidaEm == null;
 
-      // Atualização
+      // Atualizar atividade
       allow update: if request.auth != null
+        && request.auth.uid == "lzfE7smV0dW38VccI41dKCde2Kc"
 
-        // criadaPor é imutável
+        // O criador original nunca pode ser alterado
         && request.resource.data.criadaPor == resource.data.criadaPor
 
-        // atividade concluída não pode ser reaberta
+        // Atividade concluída nunca pode ser reaberta
         && !(resource.data.concluida == true
           && request.resource.data.concluida == false)
 
-        // se já estava concluída, os dados da conclusão são imutáveis
+        // Se já estava concluída, quem concluiu não pode ser alterado
         && !(resource.data.concluida == true
           && request.resource.data.concluidaPor != resource.data.concluidaPor)
 
+        // Se já estava concluída, o nome não pode ser alterado
         && !(resource.data.concluida == true
           && request.resource.data.concluidaPorNome != resource.data.concluidaPorNome)
 
+        // Se já estava concluída, a data não pode ser alterada
         && !(resource.data.concluida == true
           && request.resource.data.concluidaEm != resource.data.concluidaEm)
 
-        // enquanto pendente, os campos de conclusão precisam continuar vazios
+        // Enquanto estiver pendente, os dados de conclusão permanecem vazios
         && (
           request.resource.data.concluida == true
           || (
@@ -60,25 +55,25 @@ service cloud.firestore {
           )
         )
 
-        // ao concluir (false -> true), concluidaPor tem que ser o próprio UID
-        // — impede concluir em nome de outra conta
+        // Ao concluir, a conclusão deve pertencer ao usuário autenticado
         && (
           resource.data.concluida == true
           || request.resource.data.concluida == false
           || (
             request.resource.data.concluida == true
-            && request.resource.data.concluidaPor is string
             && request.resource.data.concluidaPor == request.auth.uid
             && request.resource.data.concluidaPorNome is string
             && request.resource.data.concluidaEm != null
           )
         );
 
-      // Exclusão: apenas usuário autenticado
-      allow delete: if request.auth != null;
+      // Somente o Afonso pode excluir atividades
+      allow delete: if request.auth != null
+        && request.auth.uid == "lzfE7smV0dW38VccI41dKCde2Kc";
+
     }
 
-    // Qualquer outra coleção/documento permanece bloqueado
+    // Qualquer outra coleção/documento fica bloqueada
     match /{document=**} {
       allow read, write: if false;
     }
